@@ -1,0 +1,39 @@
+{
+  "name": "app",
+  "productName": "App",
+  "version": "0.0.0",
+  "description": "",
+  "license": "MIT",
+  "repository": "user/repo",
+  "author": {
+    "name": "",
+    "email": "",
+    "url": ""
+  },
+  "scripts": {
+    "test": "xo",
+    "start": "electron .",
+    "build": "electron-packager . --out=dist --asar --overwrite --all"
+  },
+  "dependencies": {
+    "adbkit": "^2.11.0",
+    "electron-debug": "^2.0.0",
+    "node-netcat": "^1.4.8",
+    "telnet-client": "^0.15.5"
+  },
+  "devDependencies": {
+    "devtron": "^1.4.0",
+    "electron": "^2.0.2",
+    "electron-connect": "^0.6.3",
+    "electron-packager": "^12.1.0",
+    "gulp": "^3.9.1",
+    "gulp-useref": "^3.1.5",
+    "xo": "^0.21.1"
+  },
+  "xo": {
+    "envs": [
+      "node",
+      "browser"
+    ]
+  }
+}
