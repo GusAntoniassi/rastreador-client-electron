@@ -23,6 +23,7 @@ function createMainWindow() {
 		height: 320,
 		fullscreen: true
 	});
+	console.log(`file://${__dirname}/index.html`);
 
 	mainWindow.loadURL(`file://${__dirname}/index.html`);
 	mainWindow.on('closed', onClosed);

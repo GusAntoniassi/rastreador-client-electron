@@ -2,6 +2,7 @@
 <html>
 <head>
 	<title>Rastreador</title>
+
 	<meta name="viewport" content="initial-scale=1.0">
 	<meta charset="utf-8">
 	<style>
@@ -72,6 +73,7 @@
 			font-size: 13px;
 			letter-spacing: 0.5px;
 		}
+
 		#informacoes {
 			position: absolute;
 			bottom: 20px;
@@ -99,12 +101,16 @@
 		<div id="refresh" class="round-btn" onclick="window.location.reload()">&#x21bb</div>
 		<div id="sem-sinal" style="display: block">Sem sinal GPS</div>
 		<div id="informacoes">
+			<p>IP: <span id="info-ip"></span></p>
 			<p>Altitude: <span id="info-altitude"></span></p>
 			<p>Velocidade: <span id="info-velocidade"></span></p>
+			<p>Temp. proc.: <span id="info-temp-processador"></span></p>
+			<p>Veloc. proc.: <span id="info-veloc-processador"></span></p>
 		</div>
 		<div id="map"></div>
 	</div>
 <script>
+
 	var map, marker;
 	var loc = {lat: -23.749053, lng: -53.308825};
 
@@ -192,6 +198,14 @@
 	}
 
 	let gps = require('./gps');
+	let si = require('systeminformation');
+	let ifaces = require('os').networkInterfaces();
+	let ip = ifaces.eth0 ? ifaces.eth0[0].address : ifaces.wlp3s0 ? ifaces.wlp3s0[0].address : false;
+
+	if (ip) {
+		document.getElementById('info-ip').innerText = ip;
+	}
+
 	gps.setGpsCallback(function(data) {
 		console.log(data);
 		if (!data.gpgga || data.gpgga.latFloat == 0 && data.gpgga.lonFloat == 0) {
@@ -199,6 +213,13 @@
 			document.getElementById('sem-sinal').style.display = 'block';
 			return;
 		}
+
+		si.cpuCurrentspeed(function(data) {
+			document.getElementById('info-veloc-processador').innerText = data.avg + 'GHz';
+		});
+		si.cpuTemperature(function(data) {
+			document.getElementById('info-temp-processador').innerText = data.max + '°C';
+		});
 
 		document.getElementById('sem-sinal').style.display = 'none';
 		document.getElementById('info-altitude').innerText = (data.gpgga.alt + data.gpgga.altUnit) || '';
