@@ -58,6 +58,17 @@
 			top: 10px;
 			left: 10px;
 		}
+		#restart-adb-server {
+			width: 35px;
+			height: 35px;
+			font-size: 22px;
+			font-weight: normal;
+			background: #27ff7a;
+			position: absolute;
+			z-index: 9;
+			top: 70px;
+			left: 20px;
+		}
 		#sem-sinal {
 			position: absolute;
 			bottom: 30px;
@@ -99,6 +110,7 @@
 			<div id="zoom-out" class="round-btn zoom-control">&ndash;</div>
 		</div>
 		<div id="refresh" class="round-btn" onclick="window.location.reload()">&#x21bb</div>
+		<div id="restart-adb-server" class="round-btn" onclick="restartadb()">&#x21af</div>
 		<div id="sem-sinal" style="display: block">Sem sinal GPS</div>
 		<div id="informacoes">
 			<p>IP: <span id="info-ip"></span></p>
@@ -197,8 +209,6 @@
 		// }, 1);
 	}
 
-	let gps = require('./gps');
-	let si = require('systeminformation');
 	let ifaces = require('os').networkInterfaces();
 	let ip = ifaces.eth0 ? ifaces.eth0[0].address : ifaces.wlp3s0 ? ifaces.wlp3s0[0].address : false;
 
@@ -206,6 +216,17 @@
 		document.getElementById('info-ip').innerText = ip;
 	}
 
+	let si = require('systeminformation');
+	window.setInterval(() => {
+		si.cpuCurrentspeed(function(data) {
+			document.getElementById('info-veloc-processador').innerText = data.avg.toFixed(2) + 'GHz';
+		});
+		si.cpuTemperature(function(data) {
+			document.getElementById('info-temp-processador').innerText = data.max.toFixed(1) + '°C';
+		});
+	}, 1000);
+
+	let gps = require('./gps');
 	gps.setGpsCallback(function(data) {
 		console.log(data);
 		if (!data.gpgga || data.gpgga.latFloat == 0 && data.gpgga.lonFloat == 0) {
@@ -213,13 +234,6 @@
 			document.getElementById('sem-sinal').style.display = 'block';
 			return;
 		}
-
-		si.cpuCurrentspeed(function(data) {
-			document.getElementById('info-veloc-processador').innerText = data.avg + 'GHz';
-		});
-		si.cpuTemperature(function(data) {
-			document.getElementById('info-temp-processador').innerText = data.max + '°C';
-		});
 
 		document.getElementById('sem-sinal').style.display = 'none';
 		document.getElementById('info-altitude').innerText = (data.gpgga.alt + data.gpgga.altUnit) || '';
@@ -230,6 +244,10 @@
 		map.setCenter(latLng);
 	});
 	gps.init();
+
+	function restartadb() {
+		gps.restartAdbServer(window);
+	}
 </script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCnh_z8t9CXQXUqcnnOmiTGTn5Q1nf75lA&callback=initMap"
 		async defer></script>

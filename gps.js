@@ -1,10 +1,21 @@
 module.exports = {
 	init: init,
-	setGpsCallback: setGpsCallback
+	setGpsCallback: setGpsCallback,
+	restartAdbServer: restartAdbServer
 };
 
 var gpsCallback = null;
+var cmd = require('node-cmd');
 const portaAdb = 20175;
+const senhaRoot = 1234; // 100% errado mas
+
+function restartAdbServer(window) {
+	// Quando conecta o celular em modo tethering é necessário iniciar o servidor do adb como root pra funcionar
+	cmd.get('adb kill-server && echo ' + senhaRoot + ' | /usr/bin/sudo -S adb start-server', function(data) {
+		console.log('Servidor ADB iniciado', data ? data : '');
+		window.location.reload();
+	});
+}
 
 function initAdb() {
 	var Promise = require('bluebird');
@@ -20,6 +31,7 @@ function initAdb() {
 			.then(function (devices) {
 				console.log('Dispositivos encontrados: ', devices);
 				return Promise.map(devices, function (device) {
+					console.log('Device: ', device.id);
 					client.forward(device.id, 'tcp:' + portaAdb, 'tcp:50000').then(function () {
 						console.log('ADB Server iniciado no dispositivo', device.id);
 						resolve();
@@ -175,6 +187,7 @@ function init() {
 
 		client.on('error', function (err) {
 			console.log(err);
+			gpsCallback({});
 		});
 
 		client.on('close', function () {
@@ -185,6 +198,8 @@ function init() {
 		});
 
 		client.start();
+	}).reject(function(data) {
+		console.log('Não conseguiu iniciar o adb', data);
 	});
 }
 

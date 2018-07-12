@@ -1,7 +1,9 @@
 'use strict';
 
 let gulp = require('gulp'),
-	electron = require('electron-connect').server.create(),
+	electron = require('electron-connect').server.create({
+		stopOnClose: true
+	}),
 	sh = require('shelljs'),
 	node_ssh = require('node-ssh'),
 	Rsync = require('rsync');
@@ -21,9 +23,16 @@ let rsync = new Rsync()
 	.source(__dirname)
 	.destination('gus@10.42.0.27:/home/gus/rastreador');
 
+var electronCallback = function(procState) {
+	console.log('Electron process state: ' + procState);
+	if (procState == 'stopped') {
+		process.exit();
+	}
+};
+
 gulp.task('serve', function () {
 	// Start browser process
-	electron.start();
+	electron.start(electronCallback);
 
 	// Restart browser process
 	// gulp.watch('app.js', electron.restart);
@@ -40,12 +49,14 @@ gulp.task('serve', function () {
 
 gulp.task('reload:browser', function () {
 	// Restart main process
-	electron.restart();
+	electron.restart(electronCallback);
 });
 
 gulp.task('reload:renderer', function () {
 	// Reload renderer process
-	electron.reload();
+	electron.reload(electronCallback);
 });
+
+gulp.task('rsync', doRsync);
 
 gulp.task('default', ['serve']);
