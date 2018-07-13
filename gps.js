@@ -198,6 +198,8 @@ function init() {
 		});
 
 		client.start();
+	}).reject(function(data) {
+		console.log('Não conseguiu iniciar o adb', data);
 	});
 }
 

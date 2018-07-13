@@ -206,6 +206,8 @@
 	}, 1000);
 
 	let gps = require('./gps');
+	let firebase = require('./firebase');
+
 	gps.setGpsCallback(function (data) {
 		console.log(data);
 		if (!data.gpgga || data.gpgga.latFloat == 0 && data.gpgga.lonFloat == 0) {
@@ -214,13 +216,30 @@
 			return;
 		}
 
-		document.getElementById('sem-sinal').style.display = 'none';
-		document.getElementById('info-altitude').innerText = (data.gpgga.alt + data.gpgga.altUnit) || '';
-		document.getElementById('info-velocidade').innerText = typeof data.gprmc.speedKmH !== 'undefined' ? data.gprmc.speedKmH.toFixed(0) + ' km/h' : '';
+		let
+			latitude = data.gpgga.latFloat,
+			longitude = data.gpgga.lonFloat,
+			altitude = (data.gpgga.alt + data.gpgga.altUnit) || '',
+			velocidade = data.gprmc.speedKmH.toFixed(0),
+			timestamp = (new Date()).toISOString();
 
-		var latLng = new google.maps.LatLng(data.gpgga.latFloat, data.gpgga.lonFloat);
+
+		document.getElementById('sem-sinal').style.display = 'none';
+		document.getElementById('info-altitude').innerText = altitude;
+		document.getElementById('info-velocidade').innerText = typeof data.gprmc.speedKmH !== 'undefined' ? velocidade + ' km/h' : '';
+
+		var latLng = new google.maps.LatLng(latitude, longitude);
 		marker.setPosition(latLng);
 		map.setCenter(latLng);
+
+		let dadosRotaFirebase = {
+			lat: latitude,
+			lon: longitude,
+			vel: velocidade,
+			ts: timestamp
+		};
+
+		firebase.writePercursoData(firebase.idPercurso, dadosRotaFirebase);
 	});
 	gps.init();
 
