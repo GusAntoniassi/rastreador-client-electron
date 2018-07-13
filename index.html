@@ -13,11 +13,13 @@
 			padding: 0;
 			font-family: Arial, sans-serif;
 		}
+
 		/* Always set the map height explicitly to define the size of the div
          * element that contains the map. */
 		#map, #map-wrapper {
 			height: 100%;
 		}
+
 		#map-wrapper {
 			position: relative;
 		}
@@ -25,12 +27,14 @@
 		.round-btn {
 			font-weight: bold;
 			border-radius: 50%;
-			box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 			display: flex;
 			align-items: center;
 			justify-content: center;
 			cursor: pointer;
+			transition: .3s all ease-out;
 		}
+
 		.zoom-controls {
 			position: absolute;
 			z-index: 9;
@@ -38,15 +42,18 @@
 			right: 10px;
 			display: flex;
 			flex-direction: column;
-	 	}
+		}
+
 		.zoom-control {
 			width: 40px;
 			height: 40px;
 			background: white;
 		}
+
 		.zoom-control + .zoom-control {
 			margin-top: 8px;
 		}
+
 		#refresh {
 			width: 50px;
 			height: 50px;
@@ -58,6 +65,20 @@
 			top: 10px;
 			left: 10px;
 		}
+
+		#toggle-dark {
+			width: 40px;
+			height: 40px;
+			font-size: 22px;
+			font-weight: normal;
+			background: #26201e;
+			color: #fff;
+			position: absolute;
+			z-index: 9;
+			top: 70px;
+			left: 15px;
+		}
+
 		#restart-adb-server {
 			width: 35px;
 			height: 35px;
@@ -66,9 +87,10 @@
 			background: #27ff7a;
 			position: absolute;
 			z-index: 9;
-			top: 70px;
-			left: 20px;
+			top: 120px;
+			left: 18px;
 		}
+
 		#sem-sinal {
 			position: absolute;
 			bottom: 30px;
@@ -80,7 +102,7 @@
 			color: white;
 			padding: 5px 10px;
 			border-radius: 3px;
-			box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 			font-size: 13px;
 			letter-spacing: 0.5px;
 		}
@@ -94,8 +116,9 @@
 			background-color: white;
 			padding: 5px;
 			border-radius: 3px;
-			box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 		}
+
 		#informacoes p {
 			margin: 0;
 			line-height: 150%;
@@ -104,109 +127,65 @@
 	</style>
 </head>
 <body>
-	<div id="map-wrapper">
-		<div class="zoom-controls">
-			<div id="zoom-in" class="round-btn zoom-control">+</div>
-			<div id="zoom-out" class="round-btn zoom-control">&ndash;</div>
-		</div>
-		<div id="refresh" class="round-btn" onclick="window.location.reload()">&#x21bb</div>
-		<div id="restart-adb-server" class="round-btn" onclick="restartadb()">&#x21af</div>
-		<div id="sem-sinal" style="display: block">Sem sinal GPS</div>
-		<div id="informacoes">
-			<p>IP: <span id="info-ip"></span></p>
-			<p>Altitude: <span id="info-altitude"></span></p>
-			<p>Velocidade: <span id="info-velocidade"></span></p>
-			<p>Temp. proc.: <span id="info-temp-processador"></span></p>
-			<p>Veloc. proc.: <span id="info-veloc-processador"></span></p>
-		</div>
-		<div id="map"></div>
+<div id="map-wrapper">
+	<div class="zoom-controls">
+		<div id="zoom-in" class="round-btn zoom-control">+</div>
+		<div id="zoom-out" class="round-btn zoom-control">&ndash;</div>
 	</div>
+	<div id="refresh" class="round-btn" onclick="window.location.reload()">&#x21bb</div>
+	<div id="restart-adb-server" class="round-btn" onclick="restartadb()">&#x21af</div>
+	<div id="toggle-dark" class="round-btn dark">&#x1F314</div>
+	<div id="sem-sinal" style="display: block">Sem sinal GPS</div>
+	<div id="informacoes">
+		<p>IP: <span id="info-ip"></span></p>
+		<p>Altitude: <span id="info-altitude"></span></p>
+		<p>Velocidade: <span id="info-velocidade"></span></p>
+		<p>Temp. proc.: <span id="info-temp-processador"></span></p>
+		<p>Veloc. proc.: <span id="info-veloc-processador"></span></p>
+	</div>
+	<div id="map"></div>
+</div>
 <script>
 
 	var map, marker;
 	var loc = {lat: -23.749053, lng: -53.308825};
+	let userInterface = require('./userInterface'); // errado, passar pro app.js depois
+	let tema = 'default';
 
 	function initMap() {
 		map = new google.maps.Map(document.getElementById('map'), {
 			center: loc,
 			zoom: 16,
 			disableDefaultUI: true,
-			draggable: false,
+			// draggable: false,
 			scrollwheel: false,
 			disableDoubleClickZoom: true
 		});
 
-		google.maps.event.addDomListener(document.getElementById('zoom-in'), 'click', function() {
+		google.maps.event.addDomListener(document.getElementById('zoom-in'), 'click', function () {
 			map.setZoom(map.getZoom() + 1);
 		});
-		google.maps.event.addDomListener(document.getElementById('zoom-out'), 'click', function() {
+		google.maps.event.addDomListener(document.getElementById('zoom-out'), 'click', function () {
 			map.setZoom(map.getZoom() - 1);
 		});
 
 		marker = new google.maps.Marker({position: loc, map: map});
 
-		var coordenadasRota = [
-			{ "lat": -23.747464, "lng": -53.309527 },
-			{ "lat": -23.749008, "lng": -53.308849 },
-			{ "lat": -23.748961, "lng": -53.308508 },
-			{ "lat": -23.748832, "lng": -53.30853 },
-			{ "lat": -23.757851, "lng": -53.319012 },
-			{ "lat": -23.760946, "lng": -53.321035 },
-			{ "lat": -23.761464, "lng": -53.320109 },
-			{ "lat": -23.762811, "lng": -53.320995 },
-			{ "lat": -23.763176, "lng": -53.320282 },
-			{ "lat": -23.766138, "lng": -53.322055 },
-			{ "lat": -23.766674, "lng": -53.321037 },
-			{ "lat": -23.767522, "lng": -53.321549 },
-			{ "lat": -23.76785, "lng": -53.320902 },
-			{ "lat": -23.762053, "lng": -53.317329 },
-			{ "lat": -23.762464, "lng": -53.316543 },
-			{ "lat": -23.758566, "lng": -53.314146 },
-			{ "lat": -23.75616, "lng": -53.309592 },
-			{ "lat": -23.75605, "lng": -53.309664 },
-			{ "lat": -23.756239, "lng": -53.309744 },
-			{ "lat": -23.75616, "lng": -53.309592 },
-			{ "lat": -23.755315, "lng": -53.31013 },
-			{ "lat": -23.755387, "lng": -53.310266 },
-			{ "lat": -23.755478, "lng": -53.310205 },
-			{ "lat": -23.75291, "lng": -53.304907 },
-			{ "lat": -23.751933, "lng": -53.305311 },
-			{ "lat": -23.751399, "lng": -53.302245 },
-			{ "lat": -23.751263, "lng": -53.302275 },
-			{ "lat": -23.751331, "lng": -53.302631 },
-			{ "lat": -23.750271, "lng": -53.302849 },
-			{ "lat": -23.750295, "lng": -53.303014 },
-			{ "lat": -23.751362, "lng": -53.30279 },
-			{ "lat": -23.751513, "lng": -53.303635 },
-			{ "lat": -23.749062, "lng": -53.304169 },
-			{ "lat": -23.74824, "lng": -53.303353 },
-			{ "lat": -23.747138, "lng": -53.303587 },
-			{ "lat": -23.748006, "lng": -53.308503 },
-			{ "lat": -23.748442, "lng": -53.309165 },
-			{ "lat": -23.747464, "lng": -53.309527 },
-		];
+		var coordenadasRota = require('./rotas/rota.js');
 
 		var rotaPoly = new google.maps.Polyline({
 			path: coordenadasRota,
 			geodesic: true,
-			strokeColor: '#103bff',
+			strokeColor: 'orange',
 			strokeOpacity: 1.0,
 			strokeWeight: 5
 		});
 
 		rotaPoly.setMap(map);
-		console.log(rotaPoly.getPath().getArray());
 
-		// setInterval(() => {
-		// 	var lng = marker.getPosition().lng() + 0.000001;
-		// 	var lat = marker.getPosition().lat() + 0.0000002;
-        //
-		// 	var latLng = new google.maps.LatLng(lat, lng);
-		// 	marker.setPosition(latLng);
-		// 	map.setCenter(latLng);
-        //
-		// 	// console.log('rotaPoly.setAt(' + rotaPoly.getTotalLength() - 1 + ', ' + marker.getPosition() + ');');
-		// }, 1);
+		userInterface
+			.initialize(window)
+			.bindMap(map, rotaPoly);
 	}
 
 	let ifaces = require('os').networkInterfaces();
@@ -218,16 +197,16 @@
 
 	let si = require('systeminformation');
 	window.setInterval(() => {
-		si.cpuCurrentspeed(function(data) {
+		si.cpuCurrentspeed(function (data) {
 			document.getElementById('info-veloc-processador').innerText = data.avg.toFixed(2) + 'GHz';
 		});
-		si.cpuTemperature(function(data) {
+		si.cpuTemperature(function (data) {
 			document.getElementById('info-temp-processador').innerText = data.max.toFixed(1) + '°C';
 		});
 	}, 1000);
 
 	let gps = require('./gps');
-	gps.setGpsCallback(function(data) {
+	gps.setGpsCallback(function (data) {
 		console.log(data);
 		if (!data.gpgga || data.gpgga.latFloat == 0 && data.gpgga.lonFloat == 0) {
 			console.log('No fix');
